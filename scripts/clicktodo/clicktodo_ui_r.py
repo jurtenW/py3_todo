@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import List, Optional, Dict, Any, Callable
 from dataclasses import dataclass
 
+_MODULE_ROOT = Path(__file__).resolve().parents[2]
+_DEFAULT_DATA = _MODULE_ROOT / "data" / "todos.json"
+
 # ==========================================
 # 1. THE MODEL (Data & State Management)
 # ==========================================
@@ -216,8 +219,10 @@ class TodoApp:
 # ==========================================
 
 def main():
-    path_arg = sys.argv[1] if len(sys.argv) > 1 else "~/Jurten/py3_todo/data/todos.json"
+    path_arg = sys.argv[1] if len(sys.argv) > 1 else str(_DEFAULT_DATA)
     db_path = Path(path_arg).expanduser()
+    if not db_path.is_absolute():
+        db_path = _MODULE_ROOT / db_path
     
     store = TodoStore(db_path)
     ui = RofiUI()

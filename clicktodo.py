@@ -4,10 +4,18 @@ import shlex
 import subprocess
 from pathlib import Path
 
+_MODULE_DIR = Path(__file__).resolve().parent
+
+
+def _resolve_module_path(configured: str) -> Path:
+    path = Path(configured).expanduser()
+    return path if path.is_absolute() else _MODULE_DIR / path
+
+
 class Py3status:
-    # --- Configuration ---
-    data_path = "~/Jurten/py3_todo/data/todos.json"
-    ui_script = "~/Jurten/py3_todo/scripts/clicktodo/clicktodo_ui_r.py"
+    # --- Configuration (paths relative to this module unless absolute) ---
+    data_path = "data/todos.json"
+    ui_script = "scripts/clicktodo/clicktodo_ui_r.py"
     format = "✅ {done}/{total} • {next}"
     max_width = 40
     refresh_seconds = 5
@@ -18,8 +26,8 @@ class Py3status:
 
     def post_config_hook(self):
         """Initialize paths and ensure the file exists."""
-        self._path = Path(self.data_path).expanduser()
-        self._ui_path = Path(self.ui_script).expanduser()
+        self._path = _resolve_module_path(self.data_path)
+        self._ui_path = _resolve_module_path(self.ui_script)
         
         # Ensure data directory exists
         self._path.parent.mkdir(parents=True, exist_ok=True)
