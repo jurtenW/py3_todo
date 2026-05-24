@@ -6,8 +6,8 @@ from pathlib import Path
 
 class Py3status:
     # --- Configuration ---
-    data_path = "~/.local/share/clicktodo/todos.json"
-    ui_script = "~/.local/scripts/clicktodo/clicktodo_ui_r.py"
+    data_path = "~/Jurten/py3_todo/data/todos.json"
+    ui_script = "~/Jurten/py3_todo/scripts/clicktodo/clicktodo_ui_r.py"
     format = "✅ {done}/{total} • {next}"
     max_width = 40
     refresh_seconds = 5

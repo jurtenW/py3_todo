@@ -1,0 +1,996 @@
+{
+  "todos": [
+    {
+      "idx": 78,
+      "text": "DAA - Assignment #4",
+      "done": true,
+      "date": "20.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 81,
+      "text": "DAA - Partial Exam #2",
+      "done": true,
+      "date": "26.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 83,
+      "text": "Algorithm and Games - 2. Partial Exam",
+      "done": true,
+      "date": "27.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 97,
+      "text": "NumOpt AG",
+      "done": true,
+      "date": "18.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 98,
+      "text": "OOP1 Skeleton File",
+      "done": true,
+      "date": "18.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 99,
+      "text": "OOP1 - Video",
+      "done": true,
+      "date": "20.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 101,
+      "text": "Information Security Prüfung",
+      "done": true,
+      "date": "27.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 102,
+      "text": "Object-Oriented Programming 2 Prüfung",
+      "done": true,
+      "date": "02.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 103,
+      "text": "Games and Algorithms - Practical",
+      "done": true,
+      "date": "12.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 104,
+      "text": "DAA - Assignment #3",
+      "done": true,
+      "date": "13.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 105,
+      "text": "OOP1 - Ass2 AGs",
+      "done": true,
+      "date": "08.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 106,
+      "text": "OOP1 - HW2 Grading",
+      "done": true,
+      "date": "06.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 109,
+      "text": "Infosec P3",
+      "done": true,
+      "date": "16.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 110,
+      "text": "NumOpt Ass2",
+      "done": true,
+      "date": "19.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 111,
+      "text": "OOP1 Server + AIs",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 112,
+      "text": "Zurückschreiben OOP1 Student",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 113,
+      "text": "OOP1 - Grading fertig machen",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 114,
+      "text": "Hard AI - 1 Difficulty down",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 115,
+      "text": "Random All Binary",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 116,
+      "text": "OOP1 - Student Binaries schicken",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 117,
+      "text": "OOP1 - Nach Student -> Branch updaten + Felix schreiben",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 118,
+      "text": "Games and Algorithms: Repo Clonen",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 119,
+      "text": "GamAlg: Setup VPN",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 120,
+      "text": "GamAlg: Run the Bot locally and play Games",
+      "done": true,
+      "date": "11.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 121,
+      "text": "Grades in TC eingeben",
+      "done": true,
+      "date": "12.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 122,
+      "text": "DAA - Construct original Path",
+      "done": true,
+      "date": "13.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 123,
+      "text": "DAA - Look through the entire assignment 1x",
+      "done": true,
+      "date": "13.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 124,
+      "text": "DAA - Write Report",
+      "done": true,
+      "date": "13.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 125,
+      "text": "ISW - Abgabe",
+      "done": true,
+      "date": "29.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 126,
+      "text": "InfoSec AG",
+      "done": true,
+      "date": "19.01.2026",
+      "time": 0
+    },
+    {
+      "idx": 128,
+      "text": "NumOpt AG",
+      "done": true,
+      "date": "10.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 129,
+      "text": "ISW Präsentation",
+      "done": true,
+      "date": "11.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 130,
+      "text": "Valentin - Geschenkgutschein schicken",
+      "done": true,
+      "date": "06.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 131,
+      "text": "Dehnen",
+      "done": true,
+      "date": "17.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 132,
+      "text": "Arbeiten und Essen",
+      "done": true,
+      "date": "17.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 133,
+      "text": "Duschen",
+      "done": true,
+      "date": "17.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 134,
+      "text": "NumOpt lernen",
+      "done": true,
+      "date": "17.02.2026",
+      "time": 0
+    },
+    {
+      "idx": 136,
+      "text": "BA - Implement Entropy Calculation for cache lines",
+      "done": true,
+      "date": "02.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 137,
+      "text": "Create Simulation using LRUE",
+      "done": true,
+      "date": "03.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 138,
+      "text": "BA - Tune Entropy Cache for meaningful Results",
+      "done": true,
+      "date": "03.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 139,
+      "text": "NumOpt - Go through the lecture notes and focus on the unknown concepts",
+      "done": true,
+      "date": "03.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 140,
+      "text": "Family - Elisabeth helfen",
+      "done": true,
+      "date": "03.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 141,
+      "text": "NumOpt - Go through the questions",
+      "done": true,
+      "date": "04.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 142,
+      "text": "NumOpt - Go through Questions with LLM",
+      "done": true,
+      "date": "04.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 143,
+      "text": "TCS - Theoretical Knowledge for Homework",
+      "done": true,
+      "date": "05.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 144,
+      "text": "NumOpt - Go through N7",
+      "done": true,
+      "date": "08.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 145,
+      "text": "NumOpt - Go through N8",
+      "done": true,
+      "date": "08.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 146,
+      "text": "NumOpt - Go through N9",
+      "done": true,
+      "date": "08.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 147,
+      "text": "NumOpt - Go through N10",
+      "done": true,
+      "date": "08.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 148,
+      "text": "NumOpt - Go through N11",
+      "done": true,
+      "date": "08.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 149,
+      "text": "NumOpt - Math Preliminaries",
+      "done": true,
+      "date": "09.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 150,
+      "text": "Exam CV",
+      "done": false,
+      "date": "30.06.2026",
+      "time": 0
+    },
+    {
+      "idx": 152,
+      "text": "DP - Exam#1",
+      "done": true,
+      "date": "20.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 153,
+      "text": "DP - Exam#2",
+      "done": true,
+      "date": "18.05.2026",
+      "time": 0
+    },
+    {
+      "idx": 155,
+      "text": "DP - Exam#3",
+      "done": false,
+      "date": "15.06.2026",
+      "time": 0
+    },
+    {
+      "idx": 156,
+      "text": "ML - Exam",
+      "done": false,
+      "date": "29.06.2026",
+      "time": 0
+    },
+    {
+      "idx": 157,
+      "text": "SP - Exam#1",
+      "done": true,
+      "date": "22.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 158,
+      "text": "SP - Exam#2",
+      "done": false,
+      "date": "17.06.2026",
+      "time": 0
+    },
+    {
+      "idx": 159,
+      "text": "TCS - Ass#2",
+      "done": true,
+      "date": "16.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 160,
+      "text": "CV - Assignment#1",
+      "done": true,
+      "date": "30.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 161,
+      "text": "ML - Ass#1",
+      "done": true,
+      "date": "22.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 162,
+      "text": "ML - Ass#2",
+      "done": true,
+      "date": "20.05.2026",
+      "time": 0
+    },
+    {
+      "idx": 163,
+      "text": "ML - Ass#3",
+      "done": false,
+      "date": "17.06.2026",
+      "time": 0
+    },
+    {
+      "idx": 164,
+      "text": "SP - Ass#1",
+      "done": true,
+      "date": "24.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 165,
+      "text": "SP - Ass#2",
+      "done": true,
+      "date": "22.05.2026",
+      "time": 0
+    },
+    {
+      "idx": 166,
+      "text": "BA - Testing Environment",
+      "done": true,
+      "date": "22.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 167,
+      "text": "TCS - ASS#4",
+      "done": true,
+      "date": "13.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 168,
+      "text": "Zusammenräumen - Zimmer",
+      "done": true,
+      "date": "31.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 169,
+      "text": "Meal Prep - Frühstück",
+      "done": true,
+      "date": "31.03.2026",
+      "time": 0
+    },
+    {
+      "idx": 170,
+      "text": "ISP - Message Mentees",
+      "done": true,
+      "date": "07.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 171,
+      "text": "BA - Message Lukas",
+      "done": true,
+      "date": "07.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 172,
+      "text": "DP - Learn",
+      "done": true,
+      "date": "16.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 173,
+      "text": "Cooking",
+      "done": true,
+      "date": "16.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 174,
+      "text": "ISP - Message everyone",
+      "done": true,
+      "date": "16.04.2026",
+      "time": 0
+    },
+    {
+      "idx": 175,
+      "text": "DP - Ass#1",
+      "done": true,
+      "date": "13.05.2026",
+      "time": 0
+    },
+    {
+      "idx": 177,
+      "text": "CV - AG#1",
+      "done": true,
+      "date": "11.05.2026",
+      "time": 0
+    },
+    {
+      "idx": 178,
+      "text": "CV - Ass#2",
+      "done": false,
+      "date": "05.06.2026",
+      "time": 0
+    }
+  ],
+  "long-term": [
+    {
+      "text": "Experiment with Git"
+    },
+    {
+      "text": "OOP2 - Prüfung"
+    },
+    {
+      "text": "Bachelor Arbeit Start"
+    },
+    {
+      "text": "i3 - Finish Day"
+    },
+    {
+      "text": "i3 - Statistics"
+    },
+    {
+      "text": "i3 - My Own Rework"
+    }
+  ],
+  "archived": [
+    {
+      "text": "i3 - Change Display in ROFI"
+    },
+    {
+      "text": "Change Lock Screen"
+    },
+    {
+      "text": "Fix Monitor Bug"
+    },
+    {
+      "text": "Shortcut Tasks"
+    },
+    {
+      "text": "Link Task with Timer"
+    },
+    {
+      "text": "OOP1 Setup"
+    },
+    {
+      "text": "Change py3status GUI"
+    },
+    {
+      "text": "Dehnen",
+      "done": true,
+      "idx": 26,
+      "time": 0
+    },
+    {
+      "text": "Kochen",
+      "done": true,
+      "idx": 29,
+      "time": 0
+    },
+    {
+      "text": "Zusammenräumen",
+      "done": true,
+      "idx": 25,
+      "time": 0
+    },
+    {
+      "text": "Zusammenpacken",
+      "done": true,
+      "idx": 24,
+      "time": 0
+    },
+    {
+      "text": "Essen",
+      "done": true,
+      "idx": 23,
+      "time": 0
+    },
+    {
+      "text": "i3 - New Todo Instant Display",
+      "done": true,
+      "idx": 22,
+      "time": 0
+    },
+    {
+      "text": "Duschen",
+      "done": true,
+      "idx": 21,
+      "time": 0
+    },
+    {
+      "text": "i3 - Fix Archived Index",
+      "done": true,
+      "idx": 20,
+      "time": 0
+    },
+    {
+      "text": "Meditations - Review",
+      "done": true,
+      "idx": 32,
+      "time": 0
+    },
+    {
+      "text": "i3 WLAN",
+      "done": true,
+      "idx": 14,
+      "time": 0.0
+    },
+    {
+      "text": "i3 Battery",
+      "done": true,
+      "idx": 16,
+      "time": 0.0
+    },
+    {
+      "text": "i3 Bluetooth",
+      "done": true,
+      "idx": 15,
+      "time": 0.0
+    },
+    {
+      "text": "Duschen",
+      "done": true,
+      "idx": 34,
+      "time": 0
+    },
+    {
+      "text": "Nudeln kochen",
+      "done": true,
+      "idx": 35,
+      "time": 0
+    },
+    {
+      "text": "Zimmer aufräumen",
+      "done": true,
+      "idx": 36,
+      "time": 0
+    },
+    {
+      "text": "Küche aufräumen",
+      "done": true,
+      "idx": 38,
+      "time": 0
+    },
+    {
+      "text": "Dehnen #2",
+      "done": true,
+      "idx": 39,
+      "time": 0
+    },
+    {
+      "text": "Dehnen #3",
+      "done": true,
+      "idx": 40,
+      "time": 0
+    },
+    {
+      "text": "Hochzeitszeitung - Poltern Text",
+      "done": true,
+      "idx": 37,
+      "time": 0
+    },
+    {
+      "text": "TU Fest Ticket kaufen",
+      "done": true,
+      "idx": 56,
+      "time": 0
+    },
+    {
+      "text": "Hochzeit - Hut bestellen",
+      "done": true,
+      "idx": 55,
+      "time": 0
+    },
+    {
+      "text": "CON #4 - Processors",
+      "done": true,
+      "idx": 54,
+      "time": 0
+    },
+    {
+      "text": "OOP1 Meeting Daniel",
+      "done": true,
+      "idx": 53,
+      "time": 0
+    },
+    {
+      "text": "Merge MinMaxAI",
+      "done": true,
+      "idx": 51,
+      "time": 0
+    },
+    {
+      "text": "Testing AI",
+      "done": true,
+      "idx": 50,
+      "time": 0
+    },
+    {
+      "text": "Einkaufen",
+      "done": true,
+      "idx": 49,
+      "time": 0
+    },
+    {
+      "text": "Trainieren",
+      "done": true,
+      "idx": 48,
+      "time": 0
+    },
+    {
+      "text": "OOP1 - AI Unterschied",
+      "done": true,
+      "idx": 46,
+      "time": 0
+    },
+    {
+      "text": "Kochen Nudeln",
+      "done": true,
+      "idx": 45,
+      "time": 0
+    },
+    {
+      "text": "OOP1 - Codebase Explaination",
+      "done": true,
+      "idx": 42,
+      "time": 0
+    },
+    {
+      "text": "Infosec - A1",
+      "done": true,
+      "idx": 61,
+      "time": 0
+    },
+    {
+      "text": "EAA - TC Quiz",
+      "done": true,
+      "idx": 63,
+      "time": 0
+    },
+    {
+      "idx": 57,
+      "text": "ISW - EntropyGuard Paper",
+      "done": true,
+      "date": "05.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 58,
+      "text": "OOP1 - MinMax KI",
+      "done": true,
+      "date": "10.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 59,
+      "text": "OOP1 - Standard KI",
+      "done": true,
+      "date": null,
+      "time": 0
+    },
+    {
+      "idx": 62,
+      "text": "EAA - Ass#1",
+      "done": true,
+      "date": null,
+      "time": 0
+    },
+    {
+      "idx": 64,
+      "text": "OOP1 - HW#2 Creation",
+      "done": true,
+      "date": "12.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 66,
+      "text": "Algorithm & Games Assignment",
+      "done": true,
+      "date": null,
+      "time": 0
+    },
+    {
+      "idx": 67,
+      "text": "CON - Prüfung",
+      "done": true,
+      "date": null,
+      "time": 0
+    },
+    {
+      "idx": 69,
+      "text": "NumOpt Prüfung",
+      "done": true,
+      "date": "18.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 71,
+      "text": "OOP1 - A0 korrigieren",
+      "done": true,
+      "date": "12.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 72,
+      "text": "Information Security - AG",
+      "done": true,
+      "date": "10.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 73,
+      "text": "Information Security - A2",
+      "done": true,
+      "date": "05.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 74,
+      "text": "OOP1 - HW2 Video Creation",
+      "done": true,
+      "date": "12.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 75,
+      "text": "Py3Status Clicktodo",
+      "done": true,
+      "date": null,
+      "time": 0
+    },
+    {
+      "idx": 76,
+      "text": "DAA - Assignment #2",
+      "done": true,
+      "date": "18.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 77,
+      "text": "DAA Assignment #3",
+      "done": true,
+      "date": "16.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 79,
+      "text": "ISW - Draft Report Submission",
+      "done": true,
+      "date": "15.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 80,
+      "text": "DAA - Partial Exam #1",
+      "done": true,
+      "date": "24.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 82,
+      "text": "Algorithm and Games - HW #2",
+      "done": true,
+      "date": "16.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 84,
+      "text": "Algorithm and Games - Practical #1",
+      "done": true,
+      "date": "19.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 85,
+      "text": "Algorithm and Games - Practical #2",
+      "done": true,
+      "date": "10.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 86,
+      "text": "DAA - TC #3",
+      "done": true,
+      "date": "12.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 87,
+      "text": "NumOpt Ass#1",
+      "done": true,
+      "date": "01.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 88,
+      "text": "OOP1 - Ass #0 Grading",
+      "done": true,
+      "date": "12.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 90,
+      "text": "Siemens - Unterlagen schicken",
+      "done": true,
+      "date": "10.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 91,
+      "text": "Games & Algorithm: Exam",
+      "done": true,
+      "date": "18.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 92,
+      "text": "OOP1-A1 AG",
+      "done": true,
+      "date": "26.11.2025",
+      "time": 0
+    },
+    {
+      "idx": 93,
+      "text": "OOP1 - 3 AI Difficulties",
+      "done": true,
+      "date": "12.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 94,
+      "text": "OOP1 - AI 2+ Players",
+      "done": true,
+      "date": "12.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 95,
+      "text": "OOP1 - Test AIs",
+      "done": true,
+      "date": "12.12.2025",
+      "time": 0
+    },
+    {
+      "idx": 96,
+      "text": "InfoSec AG",
+      "done": true,
+      "date": "15.12.2025",
+      "time": 0
+    }
+  ],
+  "display_id": 178,
+  "seq": 178,
+  "clock": {
+    "running": true,
+    "timer_id": 2,
+    "elapsed": 0.0,
+    "start": 1756420223.0034618
+  }
+}
