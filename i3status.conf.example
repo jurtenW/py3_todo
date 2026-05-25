@@ -1,0 +1,9 @@
+# Snippet for ~/.config/i3/i3status.conf (or your py3status config)
+
+order += "clicktodo"
+clicktodo {
+    data_path = "/home/USER/.local/share/clicktodo/todos.json"
+    format = "✅ {done}/{total} • {next}"
+    max_width = 40
+    refresh_seconds = 5
+}

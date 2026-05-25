@@ -1,0 +1,1 @@
+"""Rofi/dmenu UI adapter."""
