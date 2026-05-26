@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 from clicktodo.models import open_todos
 from clicktodo.store import TodoStore
 
 
-def todo_counts(data: Dict[str, Any]) -> Tuple[int, int]:
+def todo_counts(data: dict[str, Any]) -> tuple[int, int]:
     todos = data.get("todos", [])
     done = sum(1 for t in todos if t.get("done"))
     return done, len(todos)
@@ -20,7 +20,7 @@ def truncate_text(text: str, max_width: int) -> str:
     return text
 
 
-def get_display_item(store: TodoStore) -> Optional[Dict[str, Any]]:
+def get_display_item(store: TodoStore) -> dict[str, Any] | None:
     """
     Resolve the task shown on the bar from display_id.
     Falls back to the first open task and fixes display_id if stale.

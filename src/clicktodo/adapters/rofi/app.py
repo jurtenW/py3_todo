@@ -4,18 +4,17 @@
 from __future__ import annotations
 
 import datetime
+import shutil
 import subprocess
 import sys
+from collections.abc import Callable
 from pathlib import Path
-import shutil
-from typing import Callable, Dict, List
 
 from clicktodo import display
+from clicktodo.adapters.rofi.ui import RofiUI
 from clicktodo.models import Environment, TodoItem
 from clicktodo.paths import default_data_path, module_root, resolve_path
 from clicktodo.store import TodoStore
-
-from clicktodo.adapters.rofi.ui import RofiUI
 
 
 class TodoApp:
@@ -59,8 +58,8 @@ class TodoApp:
             if action:
                 action()
 
-    def _build_main_menu_map(self) -> Dict[str, Callable[[], None]]:
-        mapping: Dict[str, Callable[[], None]] = {}
+    def _build_main_menu_map(self) -> dict[str, Callable[[], None]]:
+        mapping: dict[str, Callable[[], None]] = {}
         mapping["+ Add new…"] = self.prompt_add_new
         todos = self.store.get_todos()
 
@@ -104,7 +103,7 @@ class TodoApp:
             self.store.add_todo(text, date)
 
     def handle_item_actions(self, item: TodoItem) -> None:
-        options: List[str] = [
+        options: list[str] = [
             "Toggle Done",
             "Display",
             "Edit Text",
@@ -161,7 +160,7 @@ class TodoApp:
                 self.ui.show_menu("Archived", ["(empty)", "Back"])
                 return
 
-            mapping: Dict[str, Callable[[], None]] = {"Back": lambda: None}
+            mapping: dict[str, Callable[[], None]] = {"Back": lambda: None}
             for item in archived:
                 label = f"[#{item.id}] {item.text}"
                 mapping[label] = lambda i=item: self._archive_item_actions(i)
@@ -188,7 +187,7 @@ class TodoApp:
     def show_long_term_menu(self) -> None:
         while True:
             items = self.store.get_long_term()
-            mapping: Dict[str, Callable[[], None]] = {
+            mapping: dict[str, Callable[[], None]] = {
                 "+ Add long-term…": self._prompt_add_long_term,
                 "Back": lambda: None,
             }

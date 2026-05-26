@@ -4,18 +4,18 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from clicktodo.models import TodoItem, default_state, normalize_state, open_todos
+from clicktodo.models import TodoItem, default_state, normalize_state
 from clicktodo.notify import refresh_status_bar
 
 
 class TodoStore:
     def __init__(self, filepath: Path):
         self.filepath = Path(filepath)
-        self.data: Dict[str, Any] = self._load()
+        self.data: dict[str, Any] = self._load()
 
-    def _load(self) -> Dict[str, Any]:
+    def _load(self) -> dict[str, Any]:
         if not self.filepath.exists():
             return default_state()
         try:
@@ -45,10 +45,10 @@ class TodoStore:
     def reload(self) -> None:
         self.data = self._load()
 
-    def get_todos(self) -> List[TodoItem]:
+    def get_todos(self) -> list[TodoItem]:
         return [TodoItem.from_dict(x) for x in self.data.get("todos", [])]
 
-    def add_todo(self, text: str, date: Optional[str] = None) -> TodoItem:
+    def add_todo(self, text: str, date: str | None = None) -> TodoItem:
         new_id = self.data.get("seq", 0) + 1
         self.data["seq"] = new_id
         item = TodoItem(id=new_id, text=text, date=date)
@@ -103,7 +103,7 @@ class TodoStore:
                 return True
         return False
 
-    def get_long_term(self) -> List[Dict[str, Any]]:
+    def get_long_term(self) -> list[dict[str, Any]]:
         return list(self.data.get("long-term") or [])
 
     def add_long_term(self, text: str) -> None:
@@ -130,7 +130,7 @@ class TodoStore:
             lt.pop(index)
             self.save(refresh_bar=True)
 
-    def get_archived_items(self) -> List[TodoItem]:
+    def get_archived_items(self) -> list[TodoItem]:
         return [TodoItem.from_dict(x) for x in self.data.get("archived", [])]
 
     def restore_archived(self, item_id: int) -> None:

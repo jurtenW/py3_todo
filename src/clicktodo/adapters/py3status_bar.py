@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """py3status module implementation for the status bar."""
 
 from __future__ import annotations

@@ -2,8 +2,19 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+# Current schema version – increment when the JSON layout changes.
+SCHEMA_VERSION: int = 1
+_MIGRATIONS: list[Callable[[dict[str, Any]], None]] = []
+
+
+def register_migration(fn: Callable[[dict[str, Any]], None]) -> Callable[[dict[str, Any]], None]:
+    """Decorator to register a state-migration function."""
+    _MIGRATIONS.append(fn)
+    return fn
 
 
 @dataclass
@@ -18,13 +29,13 @@ class TodoItem:
     id: int
     text: str
     done: bool = False
-    date: Optional[str] = None
+    date: str | None = None
     created_at: int = 0
-    environment: Optional[Environment] = None
+    environment: Environment | None = None
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> TodoItem:
-        env: Optional[Environment] = None
+    def from_dict(cls, data: dict[str, Any]) -> TodoItem:
+        env: Environment | None = None
         raw_env = data.get("environment")
         if isinstance(raw_env, dict):
             raw_path = raw_env.get("path")
@@ -39,8 +50,8 @@ class TodoItem:
             environment=env,
         )
 
-    def to_dict(self) -> Dict[str, Any]:
-        payload: Dict[str, Any] = {
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
             "idx": self.id,
             "text": self.text,
             "done": self.done,
@@ -52,8 +63,9 @@ class TodoItem:
         return payload
 
 
-def default_state() -> Dict[str, Any]:
+def default_state() -> dict[str, Any]:
     return {
+        "version": SCHEMA_VERSION,
         "todos": [],
         "archived": [],
         "long-term": [],
@@ -62,8 +74,18 @@ def default_state() -> Dict[str, Any]:
     }
 
 
-def normalize_state(data: Dict[str, Any]) -> Dict[str, Any]:
-    """Ensure required keys exist; preserve optional keys like clock."""
+def normalize_state(data: dict[str, Any]) -> dict[str, Any]:
+    """Ensure required keys exist; run migrations; preserve optional keys."""
+    current_version = data.get("version", 0)
+
+    # Run registered migrations sequentially from current_version → SCHEMA_VERSION.
+    # Migration at index i upgrades from version i to i+1.
+    for migration_index in range(current_version, SCHEMA_VERSION):
+        if migration_index < len(_MIGRATIONS):
+            _MIGRATIONS[migration_index](data)
+
+    data["version"] = SCHEMA_VERSION
+
     base = default_state()
     merged = {**base, **data}
     merged.setdefault("todos", [])
@@ -75,5 +97,5 @@ def normalize_state(data: Dict[str, Any]) -> Dict[str, Any]:
     return merged
 
 
-def open_todos(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+def open_todos(data: dict[str, Any]) -> list[dict[str, Any]]:
     return [t for t in data.get("todos", []) if not t.get("done")]
