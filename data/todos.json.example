@@ -5,6 +5,9 @@
       "text": "Example open task",
       "done": false,
       "date": "01.06.2026",
+      "environment": {
+        "path": "~/projects/example"
+      },
       "time": 0
     }
   ],

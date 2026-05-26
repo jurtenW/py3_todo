@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 import datetime
+import subprocess
 import sys
 from pathlib import Path
+import shutil
 from typing import Callable, Dict, List
 
-from clicktodo.models import TodoItem
+from clicktodo import display
+from clicktodo.models import Environment, TodoItem
 from clicktodo.paths import default_data_path, module_root, resolve_path
 from clicktodo.store import TodoStore
 
@@ -19,6 +22,32 @@ class TodoApp:
     def __init__(self, store: TodoStore, ui: RofiUI):
         self.store = store
         self.ui = ui
+
+    def _resolve_env_path(self, raw: str) -> str:
+        """Resolve possibly-relative paths to an absolute path."""
+        s = raw.strip()
+        if not s:
+            return ""
+
+        p = Path(s).expanduser()
+        if not p.is_absolute():
+            p = self.store.filepath.parent / p
+
+        # strict=False avoids errors if the directory doesn't exist yet.
+        return str(p.resolve(strict=False))
+
+    def _open_in_vscode(self, directory: str) -> None:
+        if not directory:
+            return
+        if shutil.which("code") is None:
+            return
+
+        subprocess.Popen(
+            ["code", "--reuse-window", directory],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
 
     def run(self) -> None:
         while True:
@@ -75,15 +104,21 @@ class TodoApp:
             self.store.add_todo(text, date)
 
     def handle_item_actions(self, item: TodoItem) -> None:
-        options = [
+        options: List[str] = [
             "Toggle Done",
             "Display",
             "Edit Text",
             "Edit Date",
             "Delete",
             "Archive",
+            "Set Environment",
             "Back",
         ]
+        if item.environment is None:
+            pass
+        else:
+            options.insert(-1, "Open in VSCode")
+            options.insert(-1, "Clear Environment")
         choice = self.ui.show_menu(f"Action: {item.text}", options)
 
         if choice == "Toggle Done":
@@ -100,6 +135,24 @@ class TodoApp:
             self.store.delete_todo(item.id)
         elif choice == "Archive":
             self.store.archive_todo(item)
+        elif choice == "Set Environment":
+            initial = item.environment.path if item.environment else ""
+            raw = self.ui.ask_text("Environment directory", initial)
+            if raw is None:
+                return
+            resolved = self._resolve_env_path(raw)
+            if resolved:
+                item.environment = Environment(path=resolved)
+                self.store.update_todo(item)
+        elif choice == "Clear Environment":
+            if item.environment is None:
+                return
+            item.environment = None
+            self.store.update_todo(item)
+        elif choice == "Open in VSCode":
+            # Only reachable if option exists.
+            if item.environment and item.environment.path:
+                self._open_in_vscode(item.environment.path)
 
     def show_archive_menu(self) -> None:
         while True:
@@ -171,14 +224,36 @@ class TodoApp:
 
 
 def main() -> None:
-    path_arg = sys.argv[1] if len(sys.argv) > 1 else str(default_data_path())
+    positional = [a for a in sys.argv[1:] if not a.startswith("-")]
+    path_arg = positional[0] if positional else str(default_data_path())
     db_path = Path(path_arg).expanduser()
     if not db_path.is_absolute():
         db_path = resolve_path(str(db_path), module_root())
 
     store = TodoStore(db_path)
     store.ensure_file()
-    TodoApp(store, RofiUI()).run()
+    app = TodoApp(store, RofiUI())
+
+    if "--set-environment" in sys.argv:
+        item = display.get_display_item(store)
+        if item is None:
+            return
+        todo = TodoItem.from_dict(item)
+        if todo.environment is not None:
+            initial = todo.environment.path
+        else:
+            initial = ""
+        raw = app.ui.ask_text("Environment directory", initial)
+        if raw is None:
+            return
+        resolved = app._resolve_env_path(raw)
+        if resolved:
+            todo.environment = Environment(path=resolved)
+        else:
+            todo.environment = None
+        store.update_todo(todo)
+    else:
+        app.run()
 
 
 if __name__ == "__main__":

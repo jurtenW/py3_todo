@@ -5,6 +5,7 @@ import pytest
 
 from clicktodo.models import default_state, normalize_state
 from clicktodo.store import TodoStore
+from clicktodo.models import Environment
 
 
 @pytest.fixture
@@ -73,3 +74,17 @@ def test_long_term_promote(store: TodoStore):
     assert len(store.get_long_term()) == 0
     assert len(store.get_todos()) == 1
     assert store.get_todos()[0].text == "Backlog item"
+
+
+def test_environment_persists(store: TodoStore):
+    item = store.add_todo("Task with environment")
+    item.environment = Environment(path="/tmp/clicktodo-env")
+    store.update_todo(item)
+
+    # Force reload to validate JSON roundtrip.
+    store.reload()
+
+    todos = store.get_todos()
+    assert len(todos) == 1
+    assert todos[0].environment is not None
+    assert todos[0].environment.path == "/tmp/clicktodo-env"

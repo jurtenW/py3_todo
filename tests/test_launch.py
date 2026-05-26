@@ -80,3 +80,20 @@ def test_spawn_ui_direct_when_no_i3_msg(tmp_path):
     argv = mock_popen.call_args[0][0]
     assert argv[0] == "/usr/bin/clicktodo-ui"
     assert mock_popen.call_args[1]["start_new_session"] is True
+
+
+def test_set_environment_flag_not_misused_as_path(tmp_path):
+    """Regression: --set-environment should not be used as the todos.json path."""
+    from clicktodo.adapters.rofi import app as rofi_app
+
+    data = tmp_path / "todos.json"
+    data.write_text('{"todos":[],"archived":[],"long-term":[],"display_id":0,"seq":0}', encoding="utf-8")
+
+    mock_ui = MagicMock()
+    mock_ui.ask_text.return_value = None  # cancel prompt → early return
+
+    with patch.object(rofi_app.sys, "argv", ["clicktodo-ui", "--set-environment", str(data)]):
+        with patch.object(rofi_app, "RofiUI", return_value=mock_ui):
+            rofi_app.main()
+
+    assert data.exists()
