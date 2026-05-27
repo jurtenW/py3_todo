@@ -9,6 +9,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from clicktodo.models import AppLauncher, Environment, OpenItem
 from clicktodo.paths import default_data_path
 
 
@@ -23,6 +24,57 @@ def _launch_log_path() -> Path:
     else:
         base = Path.home() / ".local" / "share"
     return base / "clicktodo" / "launch.log"
+
+
+# ---------------------------------------------------------------------------
+# App launcher dispatch
+# ---------------------------------------------------------------------------
+
+
+def _launch_command(app: AppLauncher, target: str) -> list[str] | None:
+    """Return the command argv for opening *target* with *app*, or None."""
+
+    if app == AppLauncher.FIREFOX:
+        if shutil.which("firefox"):
+            return ["firefox", "--new-tab", target]
+    elif app == AppLauncher.CODE:
+        if shutil.which("code"):
+            return ["code", "--reuse-window", target]
+    elif app == AppLauncher.CURSOR:
+        if shutil.which("cursor"):
+            return ["cursor", target]
+    elif app == AppLauncher.OKULAR:
+        if shutil.which("okular"):
+            return ["okular", target]
+    elif app == AppLauncher.REMNOTE:
+        if shutil.which("RemNote.AppImage"):
+            return ["RemNote.AppImage", target]
+
+    return None
+
+
+def launch_open_item(item: OpenItem) -> None:
+    """Open a single OpenItem with its designated application."""
+    cmd = _launch_command(item.app, item.path)
+    if cmd is None:
+        return
+    subprocess.Popen(
+        cmd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
+    )
+
+
+def launch_environment(env: Environment) -> None:
+    """Open every item in *env.opens*."""
+    for item in env.opens:
+        launch_open_item(item)
+
+
+# ---------------------------------------------------------------------------
+# UI launcher (spawn the rofi/dmenu UI)
+# ---------------------------------------------------------------------------
 
 
 def ui_command(

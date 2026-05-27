@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import shutil
-import subprocess
-
 from clicktodo import display
-from clicktodo.launch import spawn_ui
+from clicktodo.launch import launch_environment, spawn_ui
 from clicktodo.models import TodoItem
 from clicktodo.paths import default_data_path, module_root, resolve_path
 from clicktodo.store import TodoStore
@@ -58,15 +55,10 @@ class Py3status:
             display.mark_displayed_done(store)
         elif button == 3:
             raw_item = display.get_display_item(store)
-            if raw_item is not None and shutil.which("code"):
+            if raw_item is not None:
                 todo = TodoItem.from_dict(raw_item)
-                if todo.environment and todo.environment.path:
-                    subprocess.Popen(
-                        ["code", "--reuse-window", todo.environment.path],
-                        stdout=subprocess.DEVNULL,
-                        stderr=subprocess.DEVNULL,
-                        start_new_session=True,
-                    )
+                if todo.environment:
+                    launch_environment(todo.environment)
         elif button == 4:
             display.cycle_display(store, -1)
         elif button == 5:

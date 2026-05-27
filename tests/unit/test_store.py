@@ -10,7 +10,7 @@ from typing import Any, Dict
 
 import pytest
 
-from clicktodo.models import Environment
+from clicktodo.models import Environment, OpenItem, AppLauncher, TodoItem
 from clicktodo.store import TodoStore
 from tests.fixtures.data import (
     make_state,
@@ -114,7 +114,7 @@ class TestCRUD:
     def test_update_nonexistent_id_noop(self, store_path: Path):
         store = TodoStore(store_path)
         store.ensure_file()
-        phantom = Environment(path="/x")
+        phantom = Environment()
         item = TodoItem(id=9999, text="ghost", environment=phantom)
         store.update_todo(item)  # should not crash
         assert len(store.get_todos()) == 0
@@ -296,14 +296,16 @@ class TestEnvironmentPersistence:
     def test_environment_persists_and_reloads(self, store_path: Path):
         store = TodoStore(store_path)
         item = store.add_todo("Task with environment")
-        item.environment = Environment(path="/tmp/clicktodo-env")
+        item.environment = Environment(
+            opens=[OpenItem(path="/tmp/clicktodo-env", app=AppLauncher.CODE)],
+        )
         store.update_todo(item)
         store.reload()
         todos = store.get_todos()
         assert len(todos) == 1
         assert todos[0].environment is not None
-        assert todos[0].environment.path == "/tmp/clicktodo-env"
+        assert len(todos[0].environment.opens) == 1
+        assert todos[0].environment.opens[0].path == "/tmp/clicktodo-env"
 
 
 # Import TodoItem at module level
-from clicktodo.models import TodoItem  # noqa: E402

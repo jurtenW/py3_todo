@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from clicktodo import models
 from clicktodo.models import (
+    AppLauncher,
     Environment,
+    OpenItem,
     TodoItem,
     default_state,
     normalize_state,
@@ -71,12 +73,15 @@ class TestFromDict:
         )
         assert item.environment is None
 
-    def test_environment_with_valid_path(self):
+    def test_environment_with_legacy_path(self):
+        """Legacy path key is converted to an OpenItem."""
         item = TodoItem.from_dict(
             {"idx": 1, "text": "x", "environment": {"path": "/foo/bar"}}
         )
         assert item.environment is not None
-        assert item.environment.path == "/foo/bar"
+        assert len(item.environment.opens) == 1
+        assert item.environment.opens[0].path == "/foo/bar"
+        assert item.environment.opens[0].app == AppLauncher.CODE
 
     def test_future_unknown_fields_ignored(self):
         """Forward compat: unknown fields don't crash."""
@@ -100,7 +105,9 @@ class TestFromDict:
                 "done": True,
                 "date": "15.06.2026",
                 "time": 1718467200,
-                "environment": {"path": "/home/proj"},
+                "environment": {
+                    "opens": [{"path": "/home/proj", "app": "code"}],
+                },
             }
         )
         assert item.id == 5
@@ -109,7 +116,8 @@ class TestFromDict:
         assert item.date == "15.06.2026"
         assert item.created_at == 1718467200
         assert item.environment is not None
-        assert item.environment.path == "/home/proj"
+        assert len(item.environment.opens) == 1
+        assert item.environment.opens[0].path == "/home/proj"
 
 
 # ---------------------------------------------------------------------------
@@ -128,13 +136,18 @@ class TestRoundtrip:
 
     def test_roundtrip_with_environment(self):
         item = TodoItem(
-            id=2, text="y", environment=Environment(path="/tmp/p")
+            id=2,
+            text="y",
+            environment=Environment(
+                opens=[OpenItem(path="/tmp/p", app=AppLauncher.CODE)],
+            ),
         )
         d = item.to_dict()
         assert "environment" in d
         item2 = TodoItem.from_dict(d)
         assert item2.environment is not None
-        assert item2.environment.path == "/tmp/p"
+        assert len(item2.environment.opens) == 1
+        assert item2.environment.opens[0].path == "/tmp/p"
 
     def test_roundtrip_environment_none_omitted(self):
         item = TodoItem(id=1, text="x")
@@ -302,3 +315,299 @@ class TestOpenTodos:
     def test_done_key_missing_treated_as_not_done(self):
         data = {"todos": [{"idx": 1}]}
         assert len(open_todos(data)) == 1
+
+
+# ---------------------------------------------------------------------------
+# AppLauncher
+# ---------------------------------------------------------------------------
+
+class TestAppLauncher:
+    def test_from_string_valid(self):
+        assert AppLauncher.from_string("firefox") == AppLauncher.FIREFOX
+        assert AppLauncher.from_string("code") == AppLauncher.CODE
+        assert AppLauncher.from_string("cursor") == AppLauncher.CURSOR
+        assert AppLauncher.from_string("okular") == AppLauncher.OKULAR
+
+    def test_from_string_unknown_defaults_to_code(self):
+        assert AppLauncher.from_string("vim") == AppLauncher.CODE
+        assert AppLauncher.from_string("") == AppLauncher.CODE
+
+    def test_value_is_string(self):
+        assert AppLauncher.FIREFOX.value == "firefox"
+        assert AppLauncher.CODE.value == "code"
+        assert AppLauncher.CURSOR.value == "cursor"
+        assert AppLauncher.OKULAR.value == "okular"
+
+
+# ---------------------------------------------------------------------------
+# AppLauncher.guess_for_path (smart defaults)
+# ---------------------------------------------------------------------------
+
+class TestAppLauncherGuess:
+    def test_pdf_uses_okular(self):
+        assert AppLauncher.guess_for_path("/path/to/doc.pdf") == AppLauncher.OKULAR
+
+    def test_html_uses_firefox(self):
+        assert AppLauncher.guess_for_path("/path/to/page.html") == AppLauncher.FIREFOX
+
+    def test_htm_uses_firefox(self):
+        assert AppLauncher.guess_for_path("/path/to/page.htm") == AppLauncher.FIREFOX
+
+    def test_url_uses_firefox(self):
+        assert AppLauncher.guess_for_path("index.url") == AppLauncher.FIREFOX
+
+    def test_http_url_uses_firefox(self):
+        assert AppLauncher.guess_for_path("http://example.com") == AppLauncher.FIREFOX
+
+    def test_https_url_uses_firefox(self):
+        assert AppLauncher.guess_for_path("https://example.com/path") == AppLauncher.FIREFOX
+
+    def test_code_extension_uses_code(self):
+        assert AppLauncher.guess_for_path("/path/to/main.py") == AppLauncher.CODE
+
+    def test_no_extension_uses_code(self):
+        assert AppLauncher.guess_for_path("/path/to/directory") == AppLauncher.CODE
+
+    def test_unknown_extension_uses_code(self):
+        assert AppLauncher.guess_for_path("/path/to/file.xyz") == AppLauncher.CODE
+
+
+# ---------------------------------------------------------------------------
+# OpenItem
+# ---------------------------------------------------------------------------
+
+class TestOpenItem:
+    def test_create(self):
+        item = OpenItem(path="/tmp/doc.pdf", app=AppLauncher.OKULAR)
+        assert item.path == "/tmp/doc.pdf"
+        assert item.app == AppLauncher.OKULAR
+
+
+# ---------------------------------------------------------------------------
+# Environment with opens
+# ---------------------------------------------------------------------------
+
+class TestEnvironmentWithOpens:
+    def test_default_opens_is_empty(self):
+        env = Environment()
+        assert env.opens == []
+
+    def test_roundtrip_with_opens(self):
+        env = Environment(
+            opens=[
+                OpenItem(path="/home/proj/doc.pdf", app=AppLauncher.OKULAR),
+                OpenItem(path="/home/proj/src", app=AppLauncher.CODE),
+            ],
+        )
+        item = TodoItem(id=1, text="x", environment=env)
+        d = item.to_dict()
+
+        # Check serialized form.
+        assert "environment" in d
+        assert "opens" in d["environment"]
+        assert len(d["environment"]["opens"]) == 2
+        assert d["environment"]["opens"][0]["app"] == "okular"
+        assert d["environment"]["opens"][1]["app"] == "code"
+
+        # Deserialize.
+        item2 = TodoItem.from_dict(d)
+        assert item2.environment is not None
+        assert len(item2.environment.opens) == 2
+        assert item2.environment.opens[0].app == AppLauncher.OKULAR
+        assert item2.environment.opens[1].app == AppLauncher.CODE
+
+    def test_backwards_compat_old_env_without_opens(self):
+        """Old todo data with {"path": "..."} but no "opens" key."""
+        item = TodoItem.from_dict(
+            {"idx": 1, "text": "x", "environment": {"path": "/old/path"}}
+        )
+        assert item.environment is not None
+        assert len(item.environment.opens) == 1
+        assert item.environment.opens[0].path == "/old/path"
+        assert item.environment.opens[0].app == AppLauncher.CODE
+
+    def test_empty_environment_not_serialized(self):
+        """When opens is [], environment key should be omitted."""
+        env = Environment(opens=[])
+        item = TodoItem(id=1, text="x", environment=env)
+        d = item.to_dict()
+        assert "environment" not in d
+
+    def test_unknown_app_string_defaults_to_code(self):
+        item = TodoItem.from_dict(
+            {
+                "idx": 1,
+                "text": "x",
+                "environment": {
+                    "opens": [{"path": "/p/f.txt", "app": "unknown_app"}],
+                },
+            }
+        )
+        assert item.environment is not None
+        assert len(item.environment.opens) == 1
+        assert item.environment.opens[0].app == AppLauncher.CODE
+
+    def test_empty_opens_list_ignored(self):
+        """When opens is [], treat as no environment."""
+        item = TodoItem.from_dict(
+            {
+                "idx": 1,
+                "text": "x",
+                "environment": {"opens": []},
+            }
+        )
+        assert item.environment is None
+
+    def test_opens_with_missing_path_key_skipped(self):
+        """Entries without a 'path' key are silently skipped."""
+        item = TodoItem.from_dict(
+            {
+                "idx": 1,
+                "text": "x",
+                "environment": {"opens": [{"app": "code"}]},
+            }
+        )
+        assert item.environment is None
+
+    def test_opens_with_empty_path_skipped(self):
+        """Entries with empty path are silently skipped."""
+        item = TodoItem.from_dict(
+            {
+                "idx": 1,
+                "text": "x",
+                "environment": {"opens": [{"path": "", "app": "code"}]},
+            }
+        )
+        assert item.environment is None
+
+    def test_opens_with_non_string_path_skipped(self):
+        """Entries with non-string path are silently skipped."""
+        item = TodoItem.from_dict(
+            {
+                "idx": 1,
+                "text": "x",
+                "environment": {"opens": [{"path": 123, "app": "code"}]},
+            }
+        )
+        assert item.environment is None
+
+    def test_opens_mixed_valid_and_invalid(self):
+        """Only valid entries are kept; invalid ones are dropped."""
+        item = TodoItem.from_dict(
+            {
+                "idx": 1,
+                "text": "x",
+                "environment": {
+                    "opens": [
+                        {"path": "/good", "app": "code"},
+                        {"app": "firefox"},
+                        {"path": "", "app": "okular"},
+                        {"path": "/also_good", "app": "okular"},
+                    ],
+                },
+            }
+        )
+        assert item.environment is not None
+        assert len(item.environment.opens) == 2
+        assert item.environment.opens[0].path == "/good"
+        assert item.environment.opens[1].path == "/also_good"
+
+    def test_remnote_app_launcher_enum(self):
+        """REMNOTE enum value roundtrips."""
+        assert AppLauncher.REMNOTE.value == "RemNote.AppImage"
+        assert AppLauncher.from_string("RemNote.AppImage") == AppLauncher.REMNOTE
+
+
+# ---------------------------------------------------------------------------
+# _get_extension
+# ---------------------------------------------------------------------------
+
+class TestGetExtension:
+    def test_simple_extension(self):
+        assert models._get_extension("/path/file.pdf") == ".pdf"
+
+    def test_multiple_dots(self):
+        assert models._get_extension("/path/file.tar.gz") == ".gz"
+
+    def test_no_extension(self):
+        assert models._get_extension("/path/to/directory") == ""
+
+    def test_dotfile(self):
+        assert models._get_extension("/path/.bashrc") == ".bashrc"
+
+    def test_uppercase_lowered(self):
+        assert models._get_extension("/path/FILE.PDF") == ".pdf"
+
+    def test_url_with_query(self):
+        assert models._get_extension("https://example.com/file.pdf?token=abc") == ".pdf?token=abc"
+        # Note: guess_for_path guards against URLs before calling _get_extension,
+        # so the query string never matters in practice.
+
+
+# ---------------------------------------------------------------------------
+# Schema migration v2 -> v3
+# ---------------------------------------------------------------------------
+
+class TestMigrationV2ToV3:
+    def test_migration_converts_legacy_path_to_opens(self):
+        """Migration transforms {"path": "..."} into {"opens": [...]}. """
+        # Version 1 represents old data with "path" format.
+        data = {
+            "version": 1,
+            "todos": [{"idx": 1, "text": "x", "environment": {"path": "/old"}}],
+            "archived": [],
+            "long-term": [],
+        }
+        normalized = normalize_state(data)
+        # After migration (index 1: v2_to_v3), the old "path" key becomes "opens" and "path" is removed.
+        todo_raw = normalized["todos"][0]
+        assert "opens" in todo_raw.get("environment", {})
+        assert todo_raw["environment"]["opens"][0]["path"] == "/old"
+        assert "path" not in todo_raw["environment"]
+
+    def test_migration_skips_if_opens_already_exists(self):
+        """Don't duplicate if opens is already populated."""
+        data = {
+            "version": 1,
+            "todos": [
+                {
+                    "idx": 1,
+                    "text": "x",
+                    "environment": {
+                        "path": "/legacy",
+                        "opens": [{"path": "/existing", "app": "firefox"}],
+                    },
+                }
+            ],
+            "archived": [],
+            "long-term": [],
+        }
+        normalized = normalize_state(data)
+        todo_raw = normalized["todos"][0]
+        # Should NOT have duplicated the legacy path.
+        assert len(todo_raw["environment"]["opens"]) == 1
+        assert todo_raw["environment"]["opens"][0]["path"] == "/existing"
+
+    def test_migration_handles_missing_environment(self):
+        """Todos without environment are untouched."""
+        data = {
+            "version": 2,
+            "todos": [{"idx": 1, "text": "x"}],
+            "archived": [],
+            "long-term": [],
+        }
+        normalized = normalize_state(data)
+        assert "environment" not in normalized["todos"][0]
+
+    def test_migration_handles_empty_path(self):
+        """Empty string path is skipped."""
+        data = {
+            "version": 1,
+            "todos": [{"idx": 1, "text": "x", "environment": {"path": ""}}],
+            "archived": [],
+            "long-term": [],
+        }
+        normalized = normalize_state(data)
+        # Empty path should not create an opens entry.
+        env = normalized["todos"][0].get("environment", {})
+        assert env.get("opens") is None or len(env.get("opens", [])) == 0

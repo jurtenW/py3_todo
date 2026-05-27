@@ -178,9 +178,14 @@ class TestTodoAppWorkflow:
         ui = MockUI()
         # Main: select todo
         ui.queue_menu_response(f"[#{store.get_todos()[0].id}] [DO IT] With env")
-        # Action: set environment
-        ui.queue_menu_response("Set Environment")
+        # Action: manage open items
+        ui.queue_menu_response("Manage Open Items")
+        # Open Items: add item
+        ui.queue_menu_response("+ Add Open Item")
         ui.queue_text_response("/tmp/test-env")
+        ui.queue_menu_response("code")
+        # Open Items: back
+        ui.queue_menu_response("Back")
         # Main: exit
         ui.queue_menu_response(None)
 
@@ -189,14 +194,17 @@ class TestTodoAppWorkflow:
 
         todo = store.get_todos()[0]
         assert todo.environment is not None
-        assert "/tmp/test-env" in todo.environment.path
+        assert len(todo.environment.opens) == 1
+        assert "/tmp/test-env" in todo.environment.opens[0].path
 
     def test_clear_environment(self, store_path: Path):
-        from clicktodo.models import Environment
+        from clicktodo.models import Environment, OpenItem, AppLauncher
 
         store = TodoStore(store_path)
         item = store.add_todo("Has env")
-        item.environment = Environment(path="/old/path")
+        item.environment = Environment(
+            opens=[OpenItem(path="/old/path", app=AppLauncher.CODE)],
+        )
         store.update_todo(item)
         ui = MockUI()
         # Main: select todo (with env it has extra options)
@@ -227,3 +235,129 @@ class TestTodoAppWorkflow:
 
         assert len(store.get_todos()) == 1
         assert len(store.get_archived_items()) == 0
+
+    def test_remove_open_item(self, store_path: Path):
+        """Remove an open item via the manage menu."""
+        from clicktodo.models import Environment, OpenItem, AppLauncher
+
+        store = TodoStore(store_path)
+        item = store.add_todo("Has opens")
+        item.environment = Environment(
+            opens=[
+                OpenItem(path="/first", app=AppLauncher.CODE),
+                OpenItem(path="/second", app=AppLauncher.FIREFOX),
+            ],
+        )
+        store.update_todo(item)
+
+        ui = MockUI()
+        # Main: select todo
+        todo_label = f"[#{item.id}] [DO IT] Has opens"
+        ui.queue_menu_response(todo_label)
+        # Action: manage
+        ui.queue_menu_response("Manage Open Items")
+        # Open items menu: "Remove 1. [code] /first" then Back
+        ui.queue_menu_response("Remove 1. [code] /first")
+        ui.queue_menu_response("Back")
+        # Main: exit
+        ui.queue_menu_response(None)
+
+        app = TodoApp(store, ui)
+        app.run()
+
+        todo = store.get_todos()[0]
+        assert todo.environment is not None
+        assert len(todo.environment.opens) == 1
+        assert todo.environment.opens[0].path == "/second"
+
+    def test_add_open_item_empty_path_cancelled(self, store_path: Path):
+        """Cancelling the path prompt during add open item."""
+        from clicktodo.models import AppLauncher, Environment, OpenItem
+
+        store = TodoStore(store_path)
+        item = store.add_todo("Task")
+        item.environment = Environment(
+            opens=[OpenItem(path="/kept", app=AppLauncher.CODE)],
+        )
+        store.update_todo(item)
+
+        ui = MockUI()
+        todo_label = f"[#{item.id}] [DO IT] Task"
+        ui.queue_menu_response(todo_label)
+        ui.queue_menu_response("Manage Open Items")
+        ui.queue_menu_response("+ Add Open Item")
+        ui.queue_text_response(None)  # cancel
+        # Loop shows menu again:
+        ui.queue_menu_response("Back")
+        ui.queue_menu_response(None)
+
+        app = TodoApp(store, ui)
+        app.run()
+
+        # The previously added item is still there; nothing new was added.
+        todo = store.get_todos()[0]
+        assert todo.environment is not None
+        assert len(todo.environment.opens) == 1
+        assert todo.environment.opens[0].path == "/kept"
+
+    def test_resolve_env_path_url_passthrough(self, store_path: Path):
+        """URLs should pass through _resolve_env_path unchanged."""
+        store = TodoStore(store_path)
+        store.ensure_file()
+        app = TodoApp(store, MockUI())
+
+        assert app._resolve_env_path("https://example.com") == "https://example.com"
+        assert app._resolve_env_path("http://example.com/path?q=1") == "http://example.com/path?q=1"
+
+    def test_resolve_env_path_untouched_empty(self, store_path: Path):
+        store = TodoStore(store_path)
+        store.ensure_file()
+        app = TodoApp(store, MockUI())
+        assert app._resolve_env_path("") == ""
+        assert app._resolve_env_path("   ") == ""
+
+    def test_open_environment_action(self, store_path: Path):
+        """Open Environment dispatches to launch.launch_environment."""
+        from clicktodo.models import Environment, OpenItem, AppLauncher
+
+        store = TodoStore(store_path)
+        item = store.add_todo("With env")
+        item.environment = Environment(
+            opens=[OpenItem(path="/tmp/x", app=AppLauncher.CODE)],
+        )
+        store.update_todo(item)
+
+        ui = MockUI()
+        todo_label = f"[#{item.id}] [DO IT] With env"
+        ui.queue_menu_response(todo_label)
+        ui.queue_menu_response("Open Environment")
+        ui.queue_menu_response(None)
+
+        with patch("clicktodo.adapters.rofi.app.launch") as mock_launch:
+            app = TodoApp(store, ui)
+            app.run()
+
+            mock_launch.launch_environment.assert_called_once()
+
+    def test_manage_open_items_creates_environment(self, store_path: Path):
+        """When a todo has no environment, Manage Open Items creates one."""
+        store = TodoStore(store_path)
+        item = store.add_todo("No env")
+        assert item.environment is None
+
+        ui = MockUI()
+        todo_label = f"[#{item.id}] [DO IT] No env"
+        ui.queue_menu_response(todo_label)
+        ui.queue_menu_response("Manage Open Items")
+        # Open items: back immediately
+        ui.queue_menu_response("Back")
+        # Main: exit
+        ui.queue_menu_response(None)
+
+        app = TodoApp(store, ui)
+        app.run()
+
+        # Backing out without adding anything means no store.save() was called,
+        # so the environment remains None in persistent storage.
+        todo = store.get_todos()[0]
+        assert todo.environment is None

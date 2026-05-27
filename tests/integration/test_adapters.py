@@ -156,3 +156,19 @@ class TestPy3statusAdapter:
         adapter.refresh_seconds = -1
         result = adapter.clicktodo()
         assert "full_text" in result
+
+    def test_on_click_right_click_with_opens(self, tmp_path: Path):
+        """Right click with opens-based env calls launch_environment."""
+        from clicktodo.models import Environment, OpenItem, AppLauncher
+
+        adapter = self._create_adapter(tmp_path / "todos.json")
+        item = adapter.store.add_todo("With opens")
+        item.environment = Environment(
+            opens=[OpenItem(path="/tmp/doc.pdf", app=AppLauncher.OKULAR)],
+        )
+        adapter.store.update_todo(item)
+
+        from unittest.mock import patch
+        with patch("clicktodo.adapters.py3status_bar.launch_environment") as mock_launch:
+            adapter.on_click({"button": 3})
+            mock_launch.assert_called_once()

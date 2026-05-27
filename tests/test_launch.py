@@ -7,6 +7,7 @@ from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from clicktodo import launch
+from clicktodo.models import AppLauncher, Environment, OpenItem
 
 
 def test_ui_command_prefers_clicktodo_ui(tmp_path):
@@ -90,10 +91,145 @@ def test_set_environment_flag_not_misused_as_path(tmp_path):
     data.write_text('{"todos":[],"archived":[],"long-term":[],"display_id":0,"seq":0}', encoding="utf-8")
 
     mock_ui = MagicMock()
-    mock_ui.ask_text.return_value = None  # cancel prompt → early return
+    mock_ui.ask_text.return_value = None
+    mock_ui.show_menu.return_value = "Back"  # exits manage loop
 
     with patch.object(rofi_app.sys, "argv", ["clicktodo-ui", "--set-environment", str(data)]):
         with patch.object(rofi_app, "RofiUI", return_value=mock_ui):
             rofi_app.main()
 
     assert data.exists()
+
+
+# ---------------------------------------------------------------------------
+# App launcher dispatch
+# ---------------------------------------------------------------------------
+
+
+def test_launch_command_firefox(tmp_path):
+    data = tmp_path / "page.html"
+    data.write_text("<html></html>", encoding="utf-8")
+
+    def which(name):
+        return "/usr/bin/firefox" if name == "firefox" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.FIREFOX, str(data))
+    assert cmd == ["firefox", "--new-tab", str(data)]
+
+
+def test_launch_command_code(tmp_path):
+    data = tmp_path / "main.py"
+    data.write_text("print(1)", encoding="utf-8")
+
+    def which(name):
+        return "/usr/bin/code" if name == "code" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.CODE, str(data))
+    assert cmd == ["code", "--reuse-window", str(data)]
+
+
+def test_launch_command_cursor(tmp_path):
+    data = tmp_path / "main.py"
+
+    def which(name):
+        return "/usr/bin/cursor" if name == "cursor" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.CURSOR, str(data))
+    assert cmd == ["cursor", str(data)]
+
+
+def test_launch_command_okular(tmp_path):
+    data = tmp_path / "doc.pdf"
+
+    def which(name):
+        return "/usr/bin/okular" if name == "okular" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.OKULAR, str(data))
+    assert cmd == ["okular", str(data)]
+
+
+def test_launch_command_not_found_returns_none():
+    def which(name):
+        return None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.FIREFOX, "/tmp/x")
+    assert cmd is None
+
+
+def test_launch_command_remnote():
+    """REMNOTE maps to RemNote.AppImage in PATH."""
+
+    def which(name):
+        return "/opt/RemNote.AppImage" if name == "RemNote.AppImage" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.REMNOTE, "/tmp/note")
+    assert cmd == ["RemNote.AppImage", "/tmp/note"]
+
+
+def test_launch_command_remnote_not_found():
+    """REMNOTE returns None when RemNote.AppImage is not in PATH."""
+
+    def which(name):
+        return None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.REMNOTE, "/tmp/note")
+    assert cmd is None
+
+
+def test_launch_open_item_spawns_process(tmp_path):
+    data = tmp_path / "main.py"
+    item = OpenItem(path=str(data), app=AppLauncher.CODE)
+
+    def which(name):
+        return "/usr/bin/code" if name == "code" else None
+
+    mock_popen = MagicMock()
+    with patch.object(launch.shutil, "which", side_effect=which):
+        with patch.object(launch.subprocess, "Popen", mock_popen):
+            launch.launch_open_item(item)
+
+    mock_popen.assert_called_once()
+    argv = mock_popen.call_args[0][0]
+    assert argv[0] == "code"
+
+
+def test_launch_environment_with_opens(tmp_path):
+    env = Environment(
+        opens=[
+            OpenItem(path=str(tmp_path / "doc.pdf"), app=AppLauncher.OKULAR),
+            OpenItem(path=str(tmp_path / "main.py"), app=AppLauncher.CODE),
+        ],
+    )
+
+    def which(name):
+        if name == "okular":
+            return "/usr/bin/okular"
+        if name == "code":
+            return "/usr/bin/code"
+        return None
+
+    mock_popen = MagicMock()
+    with patch.object(launch.shutil, "which", side_effect=which):
+        with patch.object(launch.subprocess, "Popen", mock_popen):
+            launch.launch_environment(env)
+
+    # Should have spawned 2 processes.
+    assert mock_popen.call_count == 2
+
+
+def test_launch_environment_empty_noop():
+    """When opens is empty, launch_environment does nothing."""
+    env = Environment()
+
+    mock_popen = MagicMock()
+    with patch.object(launch.subprocess, "Popen", mock_popen):
+        launch.launch_environment(env)
+
+    mock_popen.assert_not_called()

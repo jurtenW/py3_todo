@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from clicktodo.models import Environment, TodoItem, default_state
+from clicktodo.models import Environment, OpenItem, TodoItem, default_state
 
 
 def make_todo_item(
@@ -84,7 +84,9 @@ def sample_todo_with_env(idx: int = 3) -> Dict[str, Any]:
         idx=idx,
         text="Project task",
         date="20.06.2026",
-        environment={"path": "/home/user/project"},
+        environment={
+            "opens": [{"path": "/home/user/project", "app": "code"}],
+        },
     )
 
 

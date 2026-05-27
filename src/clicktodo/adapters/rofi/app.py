@@ -4,15 +4,14 @@
 from __future__ import annotations
 
 import datetime
-import shutil
 import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
 
-from clicktodo import display
+from clicktodo import display, launch
 from clicktodo.adapters.rofi.ui import RofiUI
-from clicktodo.models import Environment, TodoItem
+from clicktodo.models import AppLauncher, Environment, OpenItem, TodoItem
 from clicktodo.paths import default_data_path, module_root, resolve_path
 from clicktodo.store import TodoStore
 
@@ -23,10 +22,17 @@ class TodoApp:
         self.ui = ui
 
     def _resolve_env_path(self, raw: str) -> str:
-        """Resolve possibly-relative paths to an absolute path."""
+        """Resolve possibly-relative paths to an absolute path.
+
+        URLs (``http://`` / ``https://``) are returned unchanged.
+        """
         s = raw.strip()
         if not s:
             return ""
+
+        # Pass URLs through without filesystem resolution.
+        if s.startswith(("http://", "https://")):
+            return s
 
         p = Path(s).expanduser()
         if not p.is_absolute():
@@ -34,19 +40,6 @@ class TodoApp:
 
         # strict=False avoids errors if the directory doesn't exist yet.
         return str(p.resolve(strict=False))
-
-    def _open_in_vscode(self, directory: str) -> None:
-        if not directory:
-            return
-        if shutil.which("code") is None:
-            return
-
-        subprocess.Popen(
-            ["code", "--reuse-window", directory],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            start_new_session=True,
-        )
 
     def run(self) -> None:
         while True:
@@ -102,21 +95,23 @@ class TodoApp:
             )
             self.store.add_todo(text, date)
 
+    # ------------------------------------------------------------------
+    # Item actions
+    # ------------------------------------------------------------------
+
     def handle_item_actions(self, item: TodoItem) -> None:
         options: list[str] = [
             "Toggle Done",
             "Display",
             "Edit Text",
             "Edit Date",
+            "Manage Open Items",
             "Delete",
             "Archive",
-            "Set Environment",
             "Back",
         ]
-        if item.environment is None:
-            pass
-        else:
-            options.insert(-1, "Open in VSCode")
+        if item.environment is not None:
+            options.insert(-1, "Open Environment")
             options.insert(-1, "Clear Environment")
         choice = self.ui.show_menu(f"Action: {item.text}", options)
 
@@ -134,24 +129,113 @@ class TodoApp:
             self.store.delete_todo(item.id)
         elif choice == "Archive":
             self.store.archive_todo(item)
-        elif choice == "Set Environment":
-            initial = item.environment.path if item.environment else ""
-            raw = self.ui.ask_text("Environment directory", initial)
-            if raw is None:
-                return
-            resolved = self._resolve_env_path(raw)
-            if resolved:
-                item.environment = Environment(path=resolved)
-                self.store.update_todo(item)
         elif choice == "Clear Environment":
             if item.environment is None:
                 return
             item.environment = None
             self.store.update_todo(item)
-        elif choice == "Open in VSCode":
-            # Only reachable if option exists.
-            if item.environment and item.environment.path:
-                self._open_in_vscode(item.environment.path)
+        elif choice == "Open Environment":
+            if item.environment:
+                launch.launch_environment(item.environment)
+        elif choice == "Manage Open Items":
+            if item.environment is None:
+                item.environment = Environment()
+            self._manage_open_items(item)
+
+    def _manage_open_items(self, item: TodoItem) -> None:
+        """Menu for adding, removing, and listing OpenItem entries."""
+        if item.environment is None:
+            return
+
+        while True:
+            options: list[str] = ["+ Add Open Item", "+ Add from directory", "Back"]
+            opens = item.environment.opens
+
+            for idx, oi in enumerate(opens):
+                label = f"{idx + 1}. [{oi.app.value}] {oi.path}"
+                options.insert(-2, f"Remove {label}")
+
+            choice = self.ui.show_menu("Open Items", options)
+            if not choice or choice == "Back":
+                return
+
+            if choice == "+ Add Open Item":
+                self._add_open_item(item)
+            elif choice == "+ Add from directory":
+                self._add_directory_items(item)
+            elif choice.startswith("Remove "):
+                target_label = choice[len("Remove "):]
+                # Extract the index from "1. [app] path"
+                try:
+                    num = int(target_label.split(".")[0])
+                except (ValueError, IndexError):
+                    continue
+                if 0 < num <= len(opens):
+                    opens.pop(num - 1)
+                    self.store.update_todo(item)
+
+    def _add_open_item(self, item: TodoItem) -> None:
+        """Prompt for path and app to add an OpenItem."""
+        if item.environment is None:
+            return
+
+        path_raw = self.ui.ask_text("Path / URL to open")
+        if path_raw is None or not path_raw.strip():
+            return
+
+        resolved = self._resolve_env_path(path_raw)
+        if not resolved:
+            return
+
+        # Auto-suggest app based on path.
+        suggested = AppLauncher.guess_for_path(resolved)
+
+        app_labels = [a.value for a in AppLauncher]
+        selection = self.ui.show_menu(
+            "Select app (default highlighted)",
+            app_labels,
+        )
+        if not selection:
+            return
+
+        app = AppLauncher.from_string(selection)
+        item.environment.opens.append(OpenItem(path=resolved, app=app))
+        self.store.update_todo(item)
+
+    def _add_directory_items(self, item: TodoItem) -> None:
+        """Add all files from a directory as OpenItems with a single app."""
+        if item.environment is None:
+            return
+
+        dir_raw = self.ui.ask_text("Directory to scan")
+        if dir_raw is None or not dir_raw.strip():
+            return
+
+        resolved = self._resolve_env_path(dir_raw)
+        dir_path = Path(resolved)
+        if not dir_path.is_dir():
+            return
+
+        files = sorted(str(f) for f in dir_path.iterdir() if f.is_file())
+        if not files:
+            return
+
+        app_labels = [a.value for a in AppLauncher]
+        selection = self.ui.show_menu(
+            "Select app for directory files",
+            app_labels,
+        )
+        if not selection:
+            return
+
+        app = AppLauncher.from_string(selection)
+        for fpath in files:
+            item.environment.opens.append(OpenItem(path=fpath, app=app))
+        self.store.update_todo(item)
+
+    # ------------------------------------------------------------------
+    # Archive menu
+    # ------------------------------------------------------------------
 
     def show_archive_menu(self) -> None:
         while True:
@@ -183,6 +267,10 @@ class TodoApp:
             self.store.restore_archived(item.id)
         elif choice == "Delete permanently":
             self.store.delete_archived(item.id)
+
+    # ------------------------------------------------------------------
+    # Long-term menu
+    # ------------------------------------------------------------------
 
     def show_long_term_menu(self) -> None:
         while True:
@@ -238,19 +326,13 @@ def main() -> None:
         if item is None:
             return
         todo = TodoItem.from_dict(item)
-        if todo.environment is not None:
-            initial = todo.environment.path
-        else:
-            initial = ""
-        raw = app.ui.ask_text("Environment directory", initial)
-        if raw is None:
-            return
-        resolved = app._resolve_env_path(raw)
-        if resolved:
-            todo.environment = Environment(path=resolved)
-        else:
-            todo.environment = None
-        store.update_todo(todo)
+
+        if todo.environment is None:
+            todo.environment = Environment()
+            store.update_todo(todo)
+
+        # Open the manage open items screen.
+        app._manage_open_items(todo)
     else:
         app.run()
 
