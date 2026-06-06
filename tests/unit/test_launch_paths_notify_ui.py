@@ -230,3 +230,71 @@ class TestRofiUIProtocol:
         assert ui.show_menu("test", ["opt1", "opt2"]) == "opt1"
         ui.queue_text_response("hello")
         assert ui.ask_text("prompt") == "hello"
+
+
+# ---------------------------------------------------------------------------
+# open_displayed_environment
+# ---------------------------------------------------------------------------
+
+
+class TestOpenDisplayedEnvironment:
+    """Tests for launch.open_displayed_environment()."""
+
+    def test_opens_environment_when_displayed_todo_has_env(
+        self, sample_store, store_path
+    ):
+        """When the displayed todo has an environment, launch_environment is called."""
+        from clicktodo.store import TodoStore
+
+        env = sample_store.data["todos"][2].get("environment")
+        mock_env = MagicMock()
+        mock_env.opens = [MagicMock(path="/home/user/project", app=MagicMock())]
+
+        with patch.object(
+            launch, "launch_environment"
+        ) as mock_launch_env:
+            store = TodoStore(store_path)
+            store.data["display_id"] = 3  # point to the todo with env
+            store.save()
+            launch.open_displayed_environment(store_path)
+        mock_launch_env.assert_called_once()
+
+    def test_noop_when_no_open_todos(self, store_path):
+        """When there are no open todos, the function returns without error."""
+        import json
+
+        state = {
+            "version": 3,
+            "todos": [],
+            "archived": [],
+            "long-term": [],
+            "display_id": 0,
+            "seq": 0,
+        }
+        store_path.write_text(json.dumps(state), encoding="utf-8")
+
+        with patch.object(launch, "launch_environment") as mock_launch_env:
+            launch.open_displayed_environment(store_path)
+        mock_launch_env.assert_not_called()
+
+    def test_noop_when_displayed_todo_has_no_environment(
+        self, store_path
+    ):
+        """When the displayed todo lacks an environment, launch_environment is not called."""
+        import json
+
+        state = {
+            "version": 3,
+            "todos": [
+                {"idx": 1, "text": "Open task", "done": False, "date": "15.06.2026"}
+            ],
+            "archived": [],
+            "long-term": [],
+            "display_id": 1,
+            "seq": 1,
+        }
+        store_path.write_text(json.dumps(state), encoding="utf-8")
+
+        with patch.object(launch, "launch_environment") as mock_launch_env:
+            launch.open_displayed_environment(store_path)
+        mock_launch_env.assert_not_called()

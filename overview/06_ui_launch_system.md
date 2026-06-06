@@ -185,3 +185,52 @@ The code uses `subprocess.Popen(argv, ...)` with a list of arguments, NOT `subpr
 | `subprocess.Popen()` | Safe (list args) | Yes | Detached |
 
 `subprocess.Popen()` is the right choice when you want to spawn a process and not wait for it.
+
+## open_displayed_environment() -- Auto-Open at Startup
+
+```python
+def open_displayed_environment(data_path: Path | None = None) -> None:
+    """Open the environment items of the currently displayed todo."""
+    from clicktodo.display import get_display_item
+    from clicktodo.models import TodoItem
+    from clicktodo.store import TodoStore
+
+    path = data_path if data_path is not None else default_data_path()
+    store = TodoStore(path)
+    raw_item = get_display_item(store)
+    if raw_item is None:
+        return
+    todo = TodoItem.from_dict(raw_item)
+    if todo.environment is not None:
+        launch_environment(todo.environment)
+```
+
+This function opens the environment items of the currently displayed todo. It is exposed as the console script `clicktodo-open-environment` and is intended to be run at i3 session startup so that the user's current work opens automatically.
+
+### How It Works
+
+1. Loads the todo data file from the default XDG location.
+2. Calls `get_display_item()` to resolve the currently displayed todo (self-healing stale `display_id`).
+3. If the todo has an `environment`, calls `launch_environment()` to open all its `OpenItem` entries.
+4. Silently does nothing if there are no open todos or no environment.
+
+### i3 Autostart
+
+To have the displayed todo's environment opened automatically when you start your laptop, add this line to your i3 config (`~/.config/i3/config`):
+
+```
+exec --no-startup-id clicktodo-open-environment
+```
+
+The `--no-startup-id` flag prevents the X11 startup notification system from showing a notification icon for this process. The script can also be run manually from any terminal for testing.
+
+### Console Script Entry Point
+
+Registered in `pyproject.toml`:
+
+```toml
+[project.scripts]
+clicktodo-open-environment = "clicktodo.launch:main"
+```
+
+After installing the package (`pip install -e .`), the `clicktodo-open-environment` command is available on `$PATH`.

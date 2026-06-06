@@ -129,3 +129,34 @@ def spawn_ui(
         stderr=stderr_dest,
         **popen_kw,
     )
+
+
+# ---------------------------------------------------------------------------
+# Auto-open displayed todo (for i3 autostart)
+# ---------------------------------------------------------------------------
+
+
+def open_displayed_environment(data_path: Path | None = None) -> None:
+    """Open the environment items of the currently displayed todo.
+
+    Loads the data file, resolves the displayed item (self-healing
+    stale display_id), and opens all its environment open-items.
+    Does nothing if there is no displayed todo or no environment.
+    """
+    from clicktodo.display import get_display_item
+    from clicktodo.models import TodoItem
+    from clicktodo.store import TodoStore
+
+    path = data_path if data_path is not None else default_data_path()
+    store = TodoStore(path)
+    raw_item = get_display_item(store)
+    if raw_item is None:
+        return
+    todo = TodoItem.from_dict(raw_item)
+    if todo.environment is not None:
+        launch_environment(todo.environment)
+
+
+def main():
+    """Console script entry point for clicktodo-open-environment."""
+    open_displayed_environment()

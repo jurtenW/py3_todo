@@ -20,6 +20,7 @@ dev = [
 
 [project.scripts]
 clicktodo-ui = "clicktodo.adapters.rofi.app:main"
+clicktodo-open-environment = "clicktodo.launch:main"
 
 [project.entry-points."py3status"]
 clicktodo = "clicktodo.adapters.py3status_bar:Py3status"
