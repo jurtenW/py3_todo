@@ -338,6 +338,21 @@ class TestAppLauncher:
         assert AppLauncher.CURSOR.value == "cursor"
         assert AppLauncher.OKULAR.value == "okular"
 
+    def test_can_launch_alone_firefox(self):
+        assert AppLauncher.FIREFOX.can_launch_alone() is True
+
+    def test_can_launch_alone_remnote(self):
+        assert AppLauncher.REMNOTE.can_launch_alone() is True
+
+    def test_can_launch_alone_code(self):
+        assert AppLauncher.CODE.can_launch_alone() is False
+
+    def test_can_launch_alone_cursor(self):
+        assert AppLauncher.CURSOR.can_launch_alone() is False
+
+    def test_can_launch_alone_okular(self):
+        assert AppLauncher.OKULAR.can_launch_alone() is False
+
 
 # ---------------------------------------------------------------------------
 # AppLauncher.guess_for_path (smart defaults)
@@ -458,41 +473,50 @@ class TestEnvironmentWithOpens:
         )
         assert item.environment is None
 
-    def test_opens_with_missing_path_key_skipped(self):
-        """Entries without a 'path' key are silently skipped."""
+    def test_opens_with_missing_path_key_accepted(self):
+        """Entries without a 'path' key become pathless OpenItems (app-only)."""
         item = TodoItem.from_dict(
             {
                 "idx": 1,
                 "text": "x",
-                "environment": {"opens": [{"app": "code"}]},
+                "environment": {"opens": [{"app": "firefox"}]},
             }
         )
-        assert item.environment is None
+        assert item.environment is not None
+        assert len(item.environment.opens) == 1
+        assert item.environment.opens[0].app == AppLauncher.FIREFOX
+        assert item.environment.opens[0].path is None
 
-    def test_opens_with_empty_path_skipped(self):
-        """Entries with empty path are silently skipped."""
+    def test_opens_with_empty_path_becomes_none(self):
+        """Entries with empty path are treated as pathless (app-only)."""
         item = TodoItem.from_dict(
             {
                 "idx": 1,
                 "text": "x",
-                "environment": {"opens": [{"path": "", "app": "code"}]},
+                "environment": {"opens": [{"path": "", "app": "firefox"}]},
             }
         )
-        assert item.environment is None
+        assert item.environment is not None
+        assert len(item.environment.opens) == 1
+        assert item.environment.opens[0].app == AppLauncher.FIREFOX
+        assert item.environment.opens[0].path is None
 
-    def test_opens_with_non_string_path_skipped(self):
-        """Entries with non-string path are silently skipped."""
+    def test_opens_with_non_string_path_becomes_none(self):
+        """Entries with non-string path are treated as pathless (app-only)."""
         item = TodoItem.from_dict(
             {
                 "idx": 1,
                 "text": "x",
-                "environment": {"opens": [{"path": 123, "app": "code"}]},
+                "environment": {"opens": [{"path": 123, "app": "firefox"}]},
             }
         )
-        assert item.environment is None
+        assert item.environment is not None
+        assert len(item.environment.opens) == 1
+        assert item.environment.opens[0].app == AppLauncher.FIREFOX
+        assert item.environment.opens[0].path is None
 
     def test_opens_mixed_valid_and_invalid(self):
-        """Only valid entries are kept; invalid ones are dropped."""
+        """Entries with and without paths are both kept."""
         item = TodoItem.from_dict(
             {
                 "idx": 1,
@@ -508,9 +532,39 @@ class TestEnvironmentWithOpens:
             }
         )
         assert item.environment is not None
-        assert len(item.environment.opens) == 2
+        assert len(item.environment.opens) == 4
         assert item.environment.opens[0].path == "/good"
-        assert item.environment.opens[1].path == "/also_good"
+        assert item.environment.opens[1].path is None
+        assert item.environment.opens[2].path is None
+        assert item.environment.opens[3].path == "/also_good"
+
+    def test_pathless_openitem_roundtrip(self):
+        """Pathless OpenItems serialize without 'path' key and roundtrip correctly."""
+        env = Environment(
+            opens=[
+                OpenItem(app=AppLauncher.FIREFOX),
+                OpenItem(app=AppLauncher.CODE, path="/some/path"),
+                OpenItem(app=AppLauncher.REMNOTE),
+            ],
+        )
+        item = TodoItem(id=1, text="x", environment=env)
+        d = item.to_dict()
+        assert "environment" in d
+        assert len(d["environment"]["opens"]) == 3
+        # Pathless entries should not have a 'path' key.
+        assert "path" not in d["environment"]["opens"][0]
+        assert d["environment"]["opens"][1]["path"] == "/some/path"
+        assert "path" not in d["environment"]["opens"][2]
+
+        # Roundtrip.
+        item2 = TodoItem.from_dict(d)
+        assert item2.environment is not None
+        assert len(item2.environment.opens) == 3
+        assert item2.environment.opens[0].app == AppLauncher.FIREFOX
+        assert item2.environment.opens[0].path is None
+        assert item2.environment.opens[1].path == "/some/path"
+        assert item2.environment.opens[2].app == AppLauncher.REMNOTE
+        assert item2.environment.opens[2].path is None
 
     def test_remnote_app_launcher_enum(self):
         """REMNOTE enum value roundtrips."""

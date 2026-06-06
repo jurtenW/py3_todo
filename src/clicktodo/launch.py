@@ -31,24 +31,38 @@ def _launch_log_path() -> Path:
 # ---------------------------------------------------------------------------
 
 
-def _launch_command(app: AppLauncher, target: str) -> list[str] | None:
-    """Return the command argv for opening *target* with *app*, or None."""
+def _launch_command(app: AppLauncher, target: str | None) -> list[str] | None:
+    """Return the command argv for opening *target* with *app*, or None.
+
+    When *target* is None, only apps that support a "launch-only" mode
+    (firefox, RemNote) return a valid command.
+    """
 
     if app == AppLauncher.FIREFOX:
         if shutil.which("firefox"):
-            return ["firefox", "--new-tab", target]
+            if target:
+                return ["firefox", "--new-tab", target]
+            return ["firefox"]
+    elif app == AppLauncher.REMNOTE:
+        if shutil.which("RemNote.AppImage"):
+            if target:
+                return ["RemNote.AppImage", target]
+            return ["RemNote.AppImage"]
     elif app == AppLauncher.CODE:
+        if not target:
+            return None
         if shutil.which("code"):
             return ["code", "--reuse-window", target]
     elif app == AppLauncher.CURSOR:
+        if not target:
+            return None
         if shutil.which("cursor"):
             return ["cursor", target]
     elif app == AppLauncher.OKULAR:
+        if not target:
+            return None
         if shutil.which("okular"):
             return ["okular", target]
-    elif app == AppLauncher.REMNOTE:
-        if shutil.which("RemNote.AppImage"):
-            return ["RemNote.AppImage", target]
 
     return None
 

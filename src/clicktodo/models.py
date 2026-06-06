@@ -8,7 +8,7 @@ from enum import Enum
 from typing import Any
 
 # Current schema version – increment when the JSON layout changes.
-SCHEMA_VERSION: int = 3
+SCHEMA_VERSION: int = 4
 _MIGRATIONS: list[Callable[[dict[str, Any]], None]] = []
 
 
@@ -46,6 +46,12 @@ def _migration_v2_to_v3(data: dict[str, Any]) -> None:
             del env["path"]
 
 
+@register_migration
+def _migration_v3_to_v4(data: dict[str, Any]) -> None:
+    """Version 3 → 4: OpenItem.path becomes optional; no data changes needed."""
+    return
+
+
 class AppLauncher(Enum):
     """Fixed preset of applications that can open files/URLs."""
 
@@ -76,6 +82,13 @@ class AppLauncher(Enum):
             return cls.FIREFOX
         return cls.CODE
 
+    def can_launch_alone(self) -> bool:
+        """Return True if the app can be launched without a target."""
+        return self in (
+            AppLauncher.FIREFOX,
+            AppLauncher.REMNOTE,
+        )
+
 
 def _get_extension(path: str) -> str:
     """Return lowercase extension (e.g. '.pdf') or empty string."""
@@ -87,10 +100,14 @@ def _get_extension(path: str) -> str:
 
 @dataclass
 class OpenItem:
-    """A file, URL, or path to open with a specific application."""
+    """A file, URL, or path to open with a specific application.
 
-    path: str
+    *path* may be None when the intent is simply to launch the app
+    window (e.g. Firefox or RemNote) without a specific target.
+    """
+
     app: AppLauncher
+    path: str | None = None
 
 
 @dataclass
@@ -119,20 +136,29 @@ class TodoItem:
             if isinstance(raw_opens, list):
                 for entry in raw_opens:
                     if isinstance(entry, dict):
-                        op = entry.get("path", "")
+                        op = entry.get("path")
                         ap = entry.get("app", "")
+                        # Accept entries with or without a path.
                         if isinstance(op, str) and op:
                             opens.append(
                                 OpenItem(
-                                    path=op,
                                     app=AppLauncher.from_string(ap),
+                                    path=op,
+                                )
+                            )
+                        else:
+                            # Path-less entry (e.g. just launch the app).
+                            opens.append(
+                                OpenItem(
+                                    app=AppLauncher.from_string(ap),
+                                    path=None,
                                 )
                             )
             # Legacy: if only "path" key exists (pre-migration), turn it into an OpenItem.
             if not opens:
                 raw_path = raw_env.get("path")
                 if isinstance(raw_path, str) and raw_path:
-                    opens.append(OpenItem(path=raw_path, app=AppLauncher.CODE))
+                    opens.append(OpenItem(app=AppLauncher.CODE, path=raw_path))
             if opens:
                 env = Environment(opens=opens)
         return cls(
@@ -156,7 +182,7 @@ class TodoItem:
             env_payload: dict[str, Any] = {}
             if self.environment.opens:
                 env_payload["opens"] = [
-                    {"path": oi.path, "app": oi.app.value}
+                    {**({"path": oi.path} if oi.path is not None else {}), "app": oi.app.value}
                     for oi in self.environment.opens
                 ]
             if env_payload:

@@ -233,3 +233,90 @@ def test_launch_environment_empty_noop():
         launch.launch_environment(env)
 
     mock_popen.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# Pathless OpenItem (launch-only mode)
+# ---------------------------------------------------------------------------
+
+
+def test_launch_firefox_without_target():
+    """Firefox launches without --new-tab when no target."""
+
+    def which(name):
+        return "/usr/bin/firefox" if name == "firefox" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.FIREFOX, None)
+    assert cmd == ["firefox"]
+
+
+def test_launch_remnote_without_target():
+    """RemNote launches without a target arg."""
+
+    def which(name):
+        return "/opt/RemNote.AppImage" if name == "RemNote.AppImage" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.REMNOTE, None)
+    assert cmd == ["RemNote.AppImage"]
+
+
+def test_launch_code_requires_target():
+    """Code returns None when no target is provided."""
+
+    def which(name):
+        return "/usr/bin/code" if name == "code" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.CODE, None)
+    assert cmd is None
+
+
+def test_launch_cursor_requires_target():
+    """Cursor returns None when no target is provided."""
+
+    def which(name):
+        return "/usr/bin/cursor" if name == "cursor" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.CURSOR, None)
+    assert cmd is None
+
+
+def test_launch_okular_requires_target():
+    """Okular returns None when no target is provided."""
+
+    def which(name):
+        return "/usr/bin/okular" if name == "okular" else None
+
+    with patch.object(launch.shutil, "which", side_effect=which):
+        cmd = launch._launch_command(AppLauncher.OKULAR, None)
+    assert cmd is None
+
+
+def test_launch_open_item_pathless_spawns_process():
+    """Pathless OpenItem spawns the app without a target arg."""
+    item = OpenItem(app=AppLauncher.FIREFOX)
+
+    def which(name):
+        return "/usr/bin/firefox" if name == "firefox" else None
+
+    mock_popen = MagicMock()
+    with patch.object(launch.shutil, "which", side_effect=which):
+        with patch.object(launch.subprocess, "Popen", mock_popen):
+            launch.launch_open_item(item)
+
+    mock_popen.assert_called_once()
+    assert mock_popen.call_args[0][0] == ["firefox"]
+
+
+def test_launch_open_item_pathless_not_supported():
+    """Pathless OpenItem for non-launch-only apps is a no-op."""
+    item = OpenItem(app=AppLauncher.CODE)
+
+    mock_popen = MagicMock()
+    with patch.object(launch.subprocess, "Popen", mock_popen):
+        launch.launch_open_item(item)
+
+    mock_popen.assert_not_called()

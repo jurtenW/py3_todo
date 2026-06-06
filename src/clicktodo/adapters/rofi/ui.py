@@ -35,4 +35,6 @@ class RofiUI:
     def ask_text(self, prompt: str, initial: str = "") -> str | None:
         cmd = [self.rofi_bin, "-dmenu", "-p", prompt, "-lines", "0"]
         result = subprocess.run(cmd, input=initial, text=True, capture_output=True)
-        return result.stdout.strip() or None
+        if result.returncode != 0:
+            return None  # user cancelled (Escape, etc.)
+        return result.stdout.strip()

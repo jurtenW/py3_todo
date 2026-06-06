@@ -152,7 +152,8 @@ class TodoApp:
             opens = item.environment.opens
 
             for idx, oi in enumerate(opens):
-                label = f"{idx + 1}. [{oi.app.value}] {oi.path}"
+                path_display = oi.path if oi.path else "(no target)"
+                label = f"{idx + 1}. [{oi.app.value}] {path_display}"
                 options.insert(-2, f"Remove {label}")
 
             choice = self.ui.show_menu("Open Items", options)
@@ -179,27 +180,30 @@ class TodoApp:
         if item.environment is None:
             return
 
-        path_raw = self.ui.ask_text("Path / URL to open")
-        if path_raw is None or not path_raw.strip():
+        path_raw = self.ui.ask_text("Path / URL to open (leave empty to just launch app)")
+        if path_raw is None:
             return
 
-        resolved = self._resolve_env_path(path_raw)
-        if not resolved:
-            return
-
-        # Auto-suggest app based on path.
-        suggested = AppLauncher.guess_for_path(resolved)
+        resolved: str | None = None
+        if path_raw.strip():
+            resolved = self._resolve_env_path(path_raw)
+            if not resolved:
+                return
 
         app_labels = [a.value for a in AppLauncher]
         selection = self.ui.show_menu(
-            "Select app (default highlighted)",
+            "Select app",
             app_labels,
         )
         if not selection:
             return
 
         app = AppLauncher.from_string(selection)
-        item.environment.opens.append(OpenItem(path=resolved, app=app))
+
+        if not resolved and not app.can_launch_alone():
+            return
+
+        item.environment.opens.append(OpenItem(app=app, path=resolved))
         self.store.update_todo(item)
 
     def _add_directory_items(self, item: TodoItem) -> None:
